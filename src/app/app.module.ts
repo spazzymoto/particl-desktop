@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CoreModule } from './core/core.module';
 import { CoreUiModule } from './core-ui/core-ui.module';
 import { ModalsModule } from './modals/modals.module';
+import { GuidelineModule } from './guideline/guideline.module';
 
 import { MultiwalletModule, TestComponent } from './multiwallet/multiwallet.module';
 // import { WalletViewsModule } from './wallet/wallet.module';
@@ -27,6 +28,7 @@ import { routing } from './app.routing';
     ModalsModule.forRoot(),
     // WalletViewsModule, // shouldn't be needed?
     MultiwalletModule,
+    GuidelineModule
   ],
   bootstrap: [ AppComponent ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

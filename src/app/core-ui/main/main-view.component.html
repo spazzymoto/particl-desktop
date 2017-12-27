@@ -81,6 +81,16 @@
       </mat-accordion>
     </mat-content><!-- .sidebar-section -->
 
+    <mat-content class="sidebar-section" *ngIf="txService.testnet" >
+      <mat-list class="sidebar-item-group">
+        <a class="sidebar-item-link" routerLinkActive="active" routerLink="/guideline">
+          <mat-list-item class="sidebar-item">
+            <mat-icon class="icon" fontSet="faIcon" fontIcon="fa-question-circle"></mat-icon>
+            <span class="text">GuideLine</span>
+          </mat-list-item>
+        </a>
+      </mat-list>
+    </mat-content>
 
     <!--mat-content class="sidebar-section">
       <mat-list class="sidebar-item-group">
