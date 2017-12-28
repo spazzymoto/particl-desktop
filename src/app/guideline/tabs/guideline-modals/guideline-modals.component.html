@@ -1,0 +1,14 @@
+<mat-card>
+  <h3>Shared Modals</h3>
+  <div class="button-row">
+    <button mat-raised-button color="primary" (click)="openAddressLookup()">Open Address Lookup</button>
+
+    <button mat-raised-button color="accent" (click)="opeQrCodeModal()">
+      <mat-icon class="icon" fontSet="partIcon" fontIcon="part-qr"></mat-icon>
+      Qr Code Modal
+    </button>
+
+    <button mat-raised-button color="warn" (click)="openDeleteConfirmationModal()">Delete Confirmation Modal</button>
+
+  </div>
+</mat-card>
