@@ -143,7 +143,7 @@
     "asarUnpack": []
   },
   "dependencies": {
-    "bluebird": "^3.4.7",
+    "bluebird": "^3.5.3",
     "buffered-spawn": "^3.3.2",
     "cli-progress": "^1.7.0",
     "core-js": "^2.4.1",
