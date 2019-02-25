@@ -3,7 +3,7 @@ import {
   OnDestroy
 } from '@angular/core';
 import { Log } from 'ng2-logger';
-import { MatDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 import { PasswordComponent } from '../shared/password/password.component';
 import { IPassword } from '../shared/password/password.interface';
@@ -13,9 +13,11 @@ import { slideDown } from '../../core-ui/core.animations';
 import { PassphraseComponent } from './passphrase/passphrase.component';
 import { PassphraseService } from './passphrase/passphrase.service';
 
+import { RpcService } from '../../core/rpc/rpc.service';
 import { RpcStateService } from '../../core/core.module';
 import { SnackbarService } from '../../core/snackbar/snackbar.service';
 import { ModalsHelperService } from 'app/modals/modals-helper.service';
+import { EncryptwalletComponent } from 'app/modals/encryptwallet/encryptwallet.component';
 
 @Component({
   selector: 'modal-createwallet',
@@ -27,10 +29,13 @@ export class CreateWalletComponent implements OnDestroy {
 
   log: any = Log.create('createwallet.component');
 
+  stepHistory: number[] = [];
   step: number = 0;
   isRestore: boolean = false;
   name: string;
   isCrypted: boolean = false;
+  isInitial: boolean = false;
+  _encryptOpen: boolean = false;
 
   @ViewChild('nameField') nameField: ElementRef;
 
@@ -54,12 +59,15 @@ export class CreateWalletComponent implements OnDestroy {
   private destroyed: boolean = false;
 
   constructor (
+    @Inject(MAT_DIALOG_DATA) public data: any,
     @Inject(forwardRef(() => ModalsHelperService))
     private _modals: ModalsHelperService,
     private _passphraseService: PassphraseService,
     private rpcState: RpcStateService,
     private flashNotification: SnackbarService,
-    private dialogRef: MatDialogRef<CreateWalletComponent>
+    private dialogRef: MatDialogRef<CreateWalletComponent>,
+    private _rpc: RpcService,
+    private _dialog: MatDialog
   ) {
     this.reset();
   }
@@ -77,6 +85,8 @@ export class CreateWalletComponent implements OnDestroy {
     this.passwordVerify = '';
     this.errorString = '';
     this.step = 0;
+    this.isInitial = this.data.initialWallet;
+    this.stepHistory = [];
     this.rpcState.observe('getwalletinfo', 'encryptionstatus')
       .takeWhile(() => !this.destroyed)
       .subscribe(status => this.isCrypted = status !== 'Unencrypted');
@@ -84,16 +94,21 @@ export class CreateWalletComponent implements OnDestroy {
 
   initialize(type: number): void {
     this.reset();
-
+    this.stepHistory.push(this.step);
     switch (type) {
       case 0: // Encrypt wallet
         this.dialogRef.close();
         this._modals.encrypt();
         return;
       case 1: // Create
+        // If we are dealing with the default created wallet, skip the name
+        if (this.isInitial) {
+          this.step = 2;
+          return this.doStep();
+        }
         break;
       case 2: // Restore
-          this.isRestore = true;
+        this.isRestore = true;
         break;
     }
     this.nextStep();
@@ -103,7 +118,7 @@ export class CreateWalletComponent implements OnDestroy {
     this.validating = true;
 
     /* Recovery password entered */
-    if (this.step === 2) {
+    if (this.step === 3) {
       this.password = '';
       this.passwordVerify = '';
       this.passwordElement.sendPassword();
@@ -113,6 +128,7 @@ export class CreateWalletComponent implements OnDestroy {
 
     if (this.validate()) {
       this.validating = false;
+      this.stepHistory.push(this.step);
       this.step++;
       this.doStep();
     }
@@ -121,7 +137,7 @@ export class CreateWalletComponent implements OnDestroy {
   }
 
   prevStep(): void {
-    this.step--;
+    this.step = this.stepHistory.pop();
     this.errorString = '';
     this.doStep();
   }
@@ -132,13 +148,19 @@ export class CreateWalletComponent implements OnDestroy {
         setTimeout(() => this.nameField.nativeElement.focus(this), 1);
         break;
       case 2:
+        if (this.isCrypted) {
+          this.step = 3;
+          return this.doStep();
+        }
+        break;
+      case 3:
         if (this.isRestore) {
-          this.step = 4;
+          this.step = 5;
         }
         this.password = '';
         this.passwordVerify = '';
         break;
-      case 3:
+      case 4:
         this._passphraseService.generateMnemonic(
           this.mnemonicCallback.bind(this), this.password
         );
@@ -146,7 +168,7 @@ export class CreateWalletComponent implements OnDestroy {
           'Please remember to write down your Recovery Passphrase',
           'warning');
         break;
-      case 4:
+      case 5:
         while (this.words.reduce((prev, curr) => prev + +(curr === ''), 0) < 5) {
           const k = Math.floor(Math.random() * 23);
           this.words[k] = '';
@@ -155,12 +177,12 @@ export class CreateWalletComponent implements OnDestroy {
           'Did you write your password at the previous step?',
           'warning');
         break;
-      case 5:
-        this.step = 4;
+      case 6:
+        this.step = 5;
         this.errorString = '';
         if (this.rpcState.get('locked')) {
           // unlock wallet
-          this.step = 6
+          this.step = 7
         } else {
           // wallet already unlocked
           this.importMnemonicSeed();
@@ -171,6 +193,37 @@ export class CreateWalletComponent implements OnDestroy {
     this.rpcState.set('modal:fullWidth:enableClose', (this.step === 0));
   }
 
+  public createWalletWithName() {
+    this._rpc.call('createwallet', [this.name]).subscribe(
+      wallet => {
+        this.log.d('createwallet: ', wallet);
+        this.errorString = '';
+        this._rpc.wallet = this.name;
+        this.rpcState.refreshState().then(() => {
+          this.rpcState
+            .observe('getwalletinfo', 'encryptionstatus')
+            .takeWhile(() => !this.destroyed)
+            .subscribe(status => (this.isCrypted = status !== 'Unencrypted'));
+
+          this.nextStep();
+        });
+      },
+      error => {
+        if (error.code === -4) {
+          this.errorString = error.message.replace('wallet_', '');
+        } else {
+          this.flashNotification.open(error, 'error');
+        }
+
+        this.log.er(error);
+      }
+    );
+  }
+
+  closeAndReload(): void {
+    this.dialogRef.close();
+    window.location.pathname = '/wallet/overview';
+  }
 
   private mnemonicCallback(response: Object): void {
     const words = response['mnemonic'].split(' ');
@@ -190,14 +243,14 @@ export class CreateWalletComponent implements OnDestroy {
       .subscribe(
         success => {
           this._passphraseService.generateDefaultAddresses();
-          this.step = 5;
+          this.step = 6;
           this.rpcState.set('ui:walletInitialized', true);
           this.rpcState.set('ui:spinner', false);
           this.log.i('Mnemonic imported successfully');
 
         },
         error => {
-          this.step = 4;
+          this.step = 5;
           this.log.er(error);
           this.errorString = error.message;
           // Assuming that every error message have different code
@@ -214,7 +267,7 @@ export class CreateWalletComponent implements OnDestroy {
     if (this.validating && this.step === 1) {
       return !!this.name;
     }
-    if (this.validating && this.step === 4 && !this.isRestore) {
+    if (this.validating && this.step === 5 && !this.isRestore) {
       const valid = !this.words.filter(
         (value, index) => this.wordsVerification[index] !== value).length;
       this.errorString = valid ? '' : 'You have entered an invalid Recovery Phrase';
@@ -239,6 +292,22 @@ export class CreateWalletComponent implements OnDestroy {
   */
   restoreWallet(): void {
     this.passwordRestoreElement.sendPassword();
+  }
+
+  encryptWallet(encrypt: boolean): void {
+    if (encrypt) {
+      this._encryptOpen = true;
+      const dialogRef = this._dialog.open(EncryptwalletComponent, {
+        disableClose: true
+      });
+      dialogRef.afterClosed().subscribe(() => {
+        this.log.d('encrypt modal closed');
+        this._encryptOpen = false;
+        this.nextStep();
+      });
+    } else {
+      this.nextStep();
+    }
   }
 
   /** Triggered when the password is emitted from PasswordComponent */
@@ -269,6 +338,7 @@ export class CreateWalletComponent implements OnDestroy {
     } else {
       // We should probably make this a function because it isn't reusing code??
       this.validating = false;
+      this.stepHistory.push(this.step);
       this.step++;
       this.doStep();
     }
@@ -297,7 +367,7 @@ export class CreateWalletComponent implements OnDestroy {
   // capture the enter button
   @HostListener('window:keydown', ['$event'])
   keyDownEvent(event: any) {
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && !this._encryptOpen) {
       this.nextStep();
     }
   }

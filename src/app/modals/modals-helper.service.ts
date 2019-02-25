@@ -35,6 +35,7 @@ export class ModalsHelperService implements OnDestroy {
 
   /* True if user already has a wallet (imported seed or created wallet) */
   public initializedWallet: boolean = false;
+  private _createModalOpen: boolean = false;
 
   private modelSettings: ModalsSettings = {
     disableClose: true
@@ -107,9 +108,17 @@ export class ModalsHelperService implements OnDestroy {
     });
   }
 
-  createWallet() {
-    const dialogRef = this._dialog.open(CreateWalletComponent, this.modelSettings);
+  createWallet(initialWallet?: boolean) {
+    const settings = {
+      ...this.modelSettings,
+      data: {
+        initialWallet
+      }
+    }
+    this._createModalOpen = true;
+    const dialogRef = this._dialog.open(CreateWalletComponent, settings);
     dialogRef.afterClosed().subscribe(() => {
+      this._createModalOpen = false;
       this.log.d('createWallet modal closed');
     });
   }
@@ -135,7 +144,11 @@ export class ModalsHelperService implements OnDestroy {
             this.log.i('Wallet already initialized.');
             return;
           }
-          this.createWallet();
+          if (this._createModalOpen) {
+            return;
+          }
+
+          this.createWallet(true);
         });
   }
 

@@ -13,6 +13,7 @@ export class RpcStateService extends StateService implements OnDestroy {
   private destroyed: boolean = false;
 
   private _enableState: boolean = true;
+  private _services: any[] = [];
 
   /** errors gets updated everytime the stateCall RPC requests return an error */
   public errorsStateCall: Subject<any> = new Subject<any>();
@@ -54,8 +55,46 @@ export class RpcStateService extends StateService implements OnDestroy {
     }
   }
 
+  refreshState(): Promise<any> {
+    const self = this;
+    return new Promise(function(resolve: any) {
+      if (self._enableState) {
+        const services = [];
+        self._services.forEach(service => {
+          services.push(self._makeServiceCall(service.method, service.params));
+        });
+        Promise.all(services).then(() => {
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  private _makeServiceCall(method: string, params?: Array<any>): Promise<any> {
+    const self = this;
+    return new Promise(function(resolve: any, reject: any) {
+      self._rpc.call(method, params)
+        .subscribe(
+          success => {
+            self.stateCallSuccess(method, success);
+            resolve(success);
+          },
+          error => {
+            self.stateCallError(method, error, false);
+            reject(error);
+          });
+    });
+  }
+
   /** Register a state call, executes every X seconds (timeout) */
   register(method: string, timeout: number, params?: Array<any> | null): void {
+    this._services.push({
+      method,
+      timeout,
+      params
+    });
     if (timeout) {
       let firstError = true;
 
@@ -106,12 +145,17 @@ export class RpcStateService extends StateService implements OnDestroy {
   private stateCallError(method: string, error: any, firstError: boolean) {
     this.log.er(`stateCallError(): RPC Call ${method} returned an error:`, error);
 
-    // if not first error, show modal
-    if (!firstError) {
-      this.errorsStateCall.next({
-        error: error.target ? error.target : error,
-        electron: this._rpc.isElectron
-      });
+    // The wallet might not have been loaded yet, it we get -18 try load the wallet
+    if (firstError && error.code === -18) {
+      this._rpc.call('loadwallet', [this._rpc.wallet]).subscribe().unsubscribe();
+    } else {
+      // if not first error, show modal
+      if (!firstError) {
+        this.errorsStateCall.next({
+          error: error.target ? error.target : error,
+          electron: this._rpc.isElectron
+        });
+      }
     }
   }
 
@@ -142,5 +186,5 @@ export class RpcStateService extends StateService implements OnDestroy {
         this.set('ui:walletInitialized', false);
       }
     }, error => this.log.er('RPC Call returned an error', error));
-}
+  }
 }

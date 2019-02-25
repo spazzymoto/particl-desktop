@@ -18,6 +18,7 @@ import { CartComponent } from './cart/cart.component';
 import { TimeoffsetComponent } from './status/timeoffset/timeoffset.component';
 import { CountBadgeComponent } from 'app/core-ui/main/shared/count-badge/count-badge.component';
 // import { CoreUiModule } from 'app/core-ui/core-ui.module';
+import { MultiwalletModule } from 'app/multiwallet/multiwallet.module';
 
 @NgModule({
   imports: [
@@ -25,7 +26,8 @@ import { CountBadgeComponent } from 'app/core-ui/main/shared/count-badge/count-b
     RouterModule,
     MaterialModule,
     MatIconModule,
-    DirectiveModule
+    DirectiveModule,
+    MultiwalletModule
   ],
   exports: [
     MainViewComponent,

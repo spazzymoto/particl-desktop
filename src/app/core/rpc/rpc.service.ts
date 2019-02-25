@@ -27,7 +27,7 @@ declare global {
 @Injectable()
 export class RpcService implements OnDestroy {
 
-  private log: any = Log.create('rpc.service');
+  private log: any = Log.create('rpc.service id:' + Math.floor((Math.random() * 1000) + 1));
   private destroyed: boolean = false;
 
   /**
@@ -57,6 +57,25 @@ export class RpcService implements OnDestroy {
 
   ngOnDestroy() {
     this.destroyed = true;
+  }
+
+  /**
+   * Set the wallet to execute commands against.
+   * @param w the wallet filename .
+   */
+  set wallet(w: string) {
+    localStorage.setItem('wallet', w);
+  }
+
+  get wallet() {
+    return localStorage.getItem('wallet') || '';
+  }
+
+  /**
+   * Get the url for RPC based on the wallet.
+   */
+  get url() {
+    return `http://${this.hostname}:${this.port}/wallet/${this.wallet}`;
   }
 
   /**
@@ -99,7 +118,7 @@ export class RpcService implements OnDestroy {
       const headers = new HttpHeaders(headerJson);
 
       return this._http
-        .post(`http://${this.hostname}:${this.port}`, postData, { headers: headers })
+        .post(this.url, postData, { headers: headers })
           .map((response: any) => response.result)
           .catch(error => {
             let err: string;
