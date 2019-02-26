@@ -18,14 +18,7 @@
     </p>
   </mat-dialog-content>
 
-  <mat-dialog-actions fxLayoutAlign="space-between center">
-    <div class="left">
-      <button *ngIf="!isCrypted" mat-button color="basic" (click)="initialize(0);">
-        <mat-icon fontSet="partIcon" fontIcon="part-lock"></mat-icon>
-        Encrypt wallet
-      </button>
-    </div>
-    <div class="right" fxLayoutAlign="end center">
+  <mat-dialog-actions fxLayoutAlign="end center">
       <button mat-button color="primary" (click)="initialize(2);" matTooltip="You have existing wallet you would like to restore">
         <mat-icon fontSet="partIcon" fontIcon="part-lock-open"></mat-icon>
         Restore wallet
@@ -34,7 +27,6 @@
         <mat-icon fontSet="partIcon" fontIcon="part-add-account"></mat-icon>
         Create new wallet
       </button>
-    </div>
   </mat-dialog-actions>
 
 </ng-template><!-- step 0 -->

@@ -7,6 +7,7 @@ import { dataURItoBlob } from 'app/core/util/utils';
 import { environment } from '../../../environments/environment';
 import { IpcService } from 'app/core/ipc/ipc.service';
 import { RpcService } from 'app/core/rpc/rpc.service';
+import { RpcStateService } from 'app/core/rpc/rpc-state/rpc-state.service';
 
 @Injectable()
 export class MarketService {
@@ -26,11 +27,19 @@ export class MarketService {
   constructor(
     private _http: HttpClient,
     private _ipc: IpcService,
-    private _rpc: RpcService
+    private _rpc: RpcService,
+    private _rpcState: RpcStateService
     ) {
-      // There probably is a better place to do this, Arnold?
-      if (!this.isMarketStarted && this._rpc.wallet === 'Market') {
-        this.startMarket();
+      // Only start the market if we are using the Market wallet and it is initialized
+      if (this._rpc.wallet === 'Market') {
+        this._rpcState.observe('ui:walletInitialized')
+          .takeWhile(() => !this.isMarketStarted)
+          .subscribe(
+            state => {
+              if (state) {
+                this.startMarket();
+              }
+            });
       }
     }
 

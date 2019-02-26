@@ -222,7 +222,9 @@ export class CreateWalletComponent implements OnDestroy {
 
   closeAndReload(): void {
     this.dialogRef.close();
-    window.location.pathname = '/wallet/overview';
+    if (this._rpc.wallet !== '') {
+      window.location.pathname = '/wallet/overview';
+    }
   }
 
   private mnemonicCallback(response: Object): void {
