@@ -143,7 +143,7 @@
           </mat-accordion>
         </mat-content><!-- .sidebar-section -->
 
-        <mat-content class="sidebar-section" *ngIf="walletInitialized">
+        <mat-content class="sidebar-section" *ngIf="walletInitialized && market.isMarketStarted">
           <mat-list class="sidebar-item-group">
             <a class="sidebar-item-link"
               routerLinkActive="active" routerLink="/wallet/proposals">
