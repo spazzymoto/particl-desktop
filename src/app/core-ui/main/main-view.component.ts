@@ -13,6 +13,7 @@ import { UserMessageService } from 'app/core/market/user-messages/user-message.s
 import { AlphaMainnetWarningComponent } from 'app/modals/alpha-mainnet-warning/alpha-mainnet-warning.component';
 import { UserMessage, UserMessageType } from 'app/core/market/user-messages/user-message.model'
 import { isPrerelease, isMainnetRelease } from 'app/core/util/utils';
+import { MarketService } from 'app/core/market/market.service';
 
 /*
  * The MainView is basically:
@@ -57,7 +58,8 @@ export class MainViewComponent implements OnInit, OnDestroy {
     // the following imports are just 'hooks' to
     // get the singleton up and running
     private _newtxnotifier: NewTxNotifierService,
-    public proposalsNotificationsService: ProposalsNotificationsService
+    public proposalsNotificationsService: ProposalsNotificationsService,
+    private market: MarketService
   ) { }
 
   ngOnInit() {
@@ -95,8 +97,14 @@ export class MainViewComponent implements OnInit, OnDestroy {
     // Updates the error box in the sidenav if wallet is not initialized.
     this._rpcState.observe('ui:walletInitialized')
       .takeWhile(() => !this.destroyed)
-      .subscribe(status => this.walletInitialized = status);
+      .subscribe(status => {
+        this.walletInitialized = status;
 
+        // There probably is a better place to do this, Arnold?
+        if (this.walletInitialized && !this.market.isMarketStarted && this._rpc.wallet === 'Market') {
+          this.market.startMarket();
+        }
+      });
 
     this._rpcState.observe('getwalletinfo', 'unlocked_until')
       .takeWhile(() => !this.destroyed)

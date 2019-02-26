@@ -5,11 +5,13 @@ import { Log } from 'ng2-logger';
 
 import { dataURItoBlob } from 'app/core/util/utils';
 import { environment } from '../../../environments/environment';
+import { IpcService } from 'app/core/ipc/ipc.service';
 
 @Injectable()
 export class MarketService {
 
   private log: any = Log.create('rpc-state.class');
+  public isMarketStarted: boolean = false;
 
   // hostname: string = 'dev1.particl.xyz';
   // hostname: string = 'localhost';
@@ -20,9 +22,16 @@ export class MarketService {
   url: string = `http://${this.hostname}:${this.port}/api/rpc`;
   imageUrl: string = `http://${this.hostname}:${this.port}/api/item-images/template/`;
 
-  constructor(private _http: HttpClient) { }
+  constructor(
+    private _http: HttpClient,
+    private _ipc: IpcService) { }
 
   public call(method: string, params?: Array<any> | null): Observable<any> {
+    // Better way to circuit break this?
+    if (!this.isMarketStarted) {
+      return Observable.of([]);
+    }
+
     // Running in browser, delete?
     const postData = JSON.stringify({
       method: method,
@@ -83,5 +92,19 @@ export class MarketService {
       return this.extractMPErrorMessage(errorObj.error);
     }
     return 'Invalid marketplace request';
+  }
+
+  startMarket() {
+    if (window.electron) {
+      this._ipc.runCommand('start-market', null, null);
+      this.isMarketStarted = true;
+    }
+  }
+
+  stopMarket() {
+    if (window.electron) {
+      this._ipc.runCommand('stop-market', null, null);
+      this.isMarketStarted = false;
+    }
   }
 }

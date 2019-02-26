@@ -5,6 +5,7 @@ import { RpcService } from 'app/core/rpc/rpc.service';
 import { Log } from 'ng2-logger';
 
 import { ModalsHelperService } from 'app/modals/modals-helper.service';
+import { MarketService } from 'app/core/market/market.service';
 
 @Component({
   selector: 'multiwallet-sidebar',
@@ -23,7 +24,8 @@ export class MultiwalletSidebarComponent implements OnDestroy {
   constructor(
     private _modals: ModalsHelperService,
     private _rpc: RpcService,
-    private multi: MultiwalletService
+    private multi: MultiwalletService,
+    private _market: MarketService
   ) {
     // get wallet list
     this.multi.list.takeWhile(() => !this.destroyed).subscribe(list => {
@@ -37,6 +39,10 @@ export class MultiwalletSidebarComponent implements OnDestroy {
 
   async switchToWallet(wallet: IWallet) {
     this.log.d('setting wallet to ', wallet);
+
+    if (this._market.isMarketStarted) {
+      this._market.stopMarket();
+    }
 
     await this._rpc.call('listwallets', [])
     .subscribe(
