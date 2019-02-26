@@ -99,11 +99,6 @@ export class MainViewComponent implements OnInit, OnDestroy {
       .takeWhile(() => !this.destroyed)
       .subscribe(status => {
         this.walletInitialized = status;
-
-        // There probably is a better place to do this, Arnold?
-        if (this.walletInitialized && !this.market.isMarketStarted && this._rpc.wallet === 'Market') {
-          this.market.startMarket();
-        }
       });
 
     this._rpcState.observe('getwalletinfo', 'unlocked_until')

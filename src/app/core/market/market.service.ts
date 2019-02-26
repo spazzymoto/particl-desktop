@@ -6,6 +6,7 @@ import { Log } from 'ng2-logger';
 import { dataURItoBlob } from 'app/core/util/utils';
 import { environment } from '../../../environments/environment';
 import { IpcService } from 'app/core/ipc/ipc.service';
+import { RpcService } from 'app/core/rpc/rpc.service';
 
 @Injectable()
 export class MarketService {
@@ -24,7 +25,14 @@ export class MarketService {
 
   constructor(
     private _http: HttpClient,
-    private _ipc: IpcService) { }
+    private _ipc: IpcService,
+    private _rpc: RpcService
+    ) {
+      // There probably is a better place to do this, Arnold?
+      if (!this.isMarketStarted && this._rpc.wallet === 'Market') {
+        this.startMarket();
+      }
+    }
 
   public call(method: string, params?: Array<any> | null): Observable<any> {
     // Better way to circuit break this?

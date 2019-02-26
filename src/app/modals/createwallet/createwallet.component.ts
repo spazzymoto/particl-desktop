@@ -210,7 +210,7 @@ export class CreateWalletComponent implements OnDestroy {
       },
       error => {
         if (error.code === -4) {
-          this.errorString = error.message.replace('wallet_', '');
+          this.flashNotification.open(`A wallet with the name ${this.name} already exists!`, 'error');
         } else {
           this.flashNotification.open(error, 'error');
         }
