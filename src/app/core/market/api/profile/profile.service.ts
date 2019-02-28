@@ -24,7 +24,7 @@ export class ProfileService implements OnDestroy {
     public address: AddressService
   ) {
     // find default profile
-    this.defaultId().takeWhile(() => !this.destroyed).subscribe((id: number) => {
+    this.defaultId().takeWhile(() => this.market.isMarketStarted).subscribe((id: number) => {
       this.log.d('setting default profile id to ' + id);
       this.defaultProfileId = id;
     });
@@ -43,6 +43,9 @@ export class ProfileService implements OnDestroy {
       .subscribe(defaultProfile => {
         // do a new get request to get the _full_ profile.
         // includes ShippingAddresses, CryptoAddresses etc
+        if (!defaultProfile) {
+          return observer.next();
+        }
         this.get(defaultProfile.id).subscribe(full => observer.next(full));
       })
     });

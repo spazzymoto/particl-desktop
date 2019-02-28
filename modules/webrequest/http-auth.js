@@ -61,11 +61,12 @@ function isWhitelisted(url) {
 // Get the right authentication for the right hostname
 // e.g market vs rpc
 function getAuthentication(url) {
-  entry = whitelist.get(url);
+  let entry = whitelist.get(url);
   if (isPlainObject(entry) && 'auth' in entry ) {
     if (entry.name === 'wallet' && !entry.auth) {
       // cookie might not be grabbed just yet, so try again..
       loadWalletAuthentication();
+      // entry = whitelist.get(url);
     }
     return entry.auth;
   }

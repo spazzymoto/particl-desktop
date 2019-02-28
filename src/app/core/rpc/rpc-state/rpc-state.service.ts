@@ -5,12 +5,14 @@ import { Subject } from 'rxjs';
 
 import { StateService } from 'app/core/state/state.service';
 import { RpcService } from 'app/core/rpc/rpc.service';
+import { _MatSelectMixinBase } from '@angular/material';
 
 @Injectable()
 export class RpcStateService extends StateService implements OnDestroy {
 
   private log: any = Log.create('rpc-state.class');
   private destroyed: boolean = false;
+  private _smsgSwitched: boolean = false;
 
   private _enableState: boolean = true;
   private _services: any[] = [];
@@ -182,6 +184,16 @@ export class RpcStateService extends StateService implements OnDestroy {
       // check if account is active
       if (!!response.hdseedid) {
         this.set('ui:walletInitialized', true);
+        if (!this._smsgSwitched) {
+          // console.log('######################## DISABLING SMSG');
+          // this._rpc.call('smsgdisable', [])
+          //   .subscribe(
+          //     () => {console.log('######################## ENABLING SMSG');
+          //     this._rpc.call('smsgenable', ['Market']).subscribe(() => {
+          //       this._smsgSwitched = true;
+          //     }).unsubscribe();
+          //   }).unsubscribe();
+        }
       } else {
         this.set('ui:walletInitialized', false);
       }
