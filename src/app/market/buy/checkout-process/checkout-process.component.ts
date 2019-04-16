@@ -32,6 +32,7 @@ import { PostListingCacheService } from 'app/core/market/market-cache/post-listi
 import { takeWhile, take } from 'rxjs/operators';
 import { PreviewListingComponent } from 'app/market/listings/preview-listing/preview-listing.component';
 import { ProcessingModalComponent } from 'app/modals/processing-modal/processing-modal.component';
+import { FundExternalModalComponent } from 'app/modals/fund-external/fund-external.component';
 
 enum errorType {
   itemExpired = 'An item in your basket has expired!'
@@ -286,7 +287,7 @@ export class CheckoutProcessComponent implements OnInit, OnDestroy {
     });
   }
 
-  bidOrder() {
+  bidOrder(fundFromAddress?: string) {
     const addressId: number = this.selectedAddress && this.selectedAddress.id ? +this.selectedAddress.id : -1;
 
     // Extract the shipping address details here (always use the address entered by the user in this.shippingFormGroup)
@@ -309,7 +310,7 @@ export class CheckoutProcessComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.bid.order(this.cart, this.profile, shippingInfo).then((res) => {
+    this.bid.order(this.cart, this.profile, shippingInfo, fundFromAddress).then((res) => {
       this.updateShippingAddress();
       this.clear();
       this.snackbarService.open('Order has been successfully placed');
@@ -325,6 +326,22 @@ export class CheckoutProcessComponent implements OnInit, OnDestroy {
       this.snackbarService.open(error, 'warn');
       this.dialog.closeAll();
       this.log.d(`Error while placing an order`);
+
+      if (error === 'Not enough funds') {
+        this.fundFromExternal();
+      }
+    });
+  }
+
+  private fundFromExternal() {
+    const dialogRef = this.dialog.open(FundExternalModalComponent, {
+      data: {
+        cart: this.cart
+      }
+    });
+
+    dialogRef.componentInstance.isFunded.subscribe(fundedAddress => {
+      this.bidOrder()
     });
   }
 

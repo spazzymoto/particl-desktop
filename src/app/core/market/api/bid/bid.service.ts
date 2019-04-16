@@ -23,7 +23,7 @@ export class BidService {
   constructor(private market: MarketService, private cartService: CartService) {
   }
 
-  public async order(cart: Cart, profile: any, shippingAddress: any): Promise<string> {
+  public async order(cart: Cart, profile: any, shippingAddress: any, fundFromAddress?: string): Promise<string> {
     let isValid = true;
     const timeBuffer = 5000;
     const validDate = new Date().getTime() + timeBuffer;
@@ -38,10 +38,15 @@ export class BidService {
       throw errorType.itemExpired;
     }
 
-    const shippingParams = [];
+    const additionalParams = [];
     for (const key of Object.keys(shippingAddress)) {
-      shippingParams.push(key);
-      shippingParams.push(shippingAddress[key]);
+      additionalParams.push(key);
+      additionalParams.push(shippingAddress[key]);
+    }
+
+    if (fundFromAddress) {
+      additionalParams.push('fundFromAddress');
+      additionalParams.push(fundFromAddress);
     }
 
     for (let i = 0; i < cart.listings.length; i++) {
@@ -49,7 +54,7 @@ export class BidService {
       if (listing.hash) {
         this.log.d(`Placing bid for hash=${listing.hash}`);
         // bid for item
-        await this.market.call('bid', ['send', listing.hash, profile.id, false, ...shippingParams]).toPromise()
+        await this.market.call('bid', ['send', listing.hash, profile.id, false, ...additionalParams]).toPromise()
           .catch((error) => {
             if (error) {
               error = this.errorHandle(error.toString());

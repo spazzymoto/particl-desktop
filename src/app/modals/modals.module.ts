@@ -40,6 +40,8 @@ import { BidConfirmationModalComponent } from 'app/modals/market-bid-confirmatio
 import { ListingExpirationComponent } from './market-listing-expiration/listing-expiration.component';
 import { ProcessingModalComponent } from './processing-modal/processing-modal.component';
 import { AlphaMainnetWarningComponent } from './alpha-mainnet-warning/alpha-mainnet-warning.component';
+import { FundExternalModalComponent } from './fund-external/fund-external.component'
+import { QRCodeModule } from 'angularx-qrcode';
 
 @NgModule({
   imports: [
@@ -48,7 +50,8 @@ import { AlphaMainnetWarningComponent } from './alpha-mainnet-warning/alpha-main
     ClipboardModule,
     /* own */
     MaterialModule,
-    DirectiveModule
+    DirectiveModule,
+    QRCodeModule
   ],
   declarations: [
     PasswordComponent,
@@ -71,7 +74,8 @@ import { AlphaMainnetWarningComponent } from './alpha-mainnet-warning/alpha-main
     BidConfirmationModalComponent,
     ListingExpirationComponent,
     ProcessingModalComponent,
-    AlphaMainnetWarningComponent
+    AlphaMainnetWarningComponent,
+    FundExternalModalComponent
   ],
   exports: [
     ClipboardModule
@@ -100,7 +104,8 @@ import { AlphaMainnetWarningComponent } from './alpha-mainnet-warning/alpha-main
     BidConfirmationModalComponent,
     ListingExpirationComponent,
     ProcessingModalComponent,
-    AlphaMainnetWarningComponent
+    AlphaMainnetWarningComponent,
+    FundExternalModalComponent
   ],
 })
 export class ModalsModule {
