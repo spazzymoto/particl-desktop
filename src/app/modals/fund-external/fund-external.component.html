@@ -6,15 +6,13 @@
 <div mat-dialog-content class="dialog-content">
   <div class="tx-confirmation" *ngIf="!isConfirming">
     <div class="tx-info">
-      <div class="public">
-        <div class="title">Insufficient Funds</div>
-        <p class="widget-help">
-          Please fund the following address in order to place the bid.
-        </p>
-        <qrcode size="180" [level]="'H'" qrdata="particl:{{address}}?amount={{amount.getAmount()}}"></qrcode>
-      </div>
+      <mat-icon class="icon blue" fontSet="partIcon" fontIcon="part-circle-alert"></mat-icon>
+      <div class="title">Insufficient funds</div>
+      <p class="widget-help">
+        You don't have enough funds in your wallet to place the bid &ndash; however you can fund this address from your other wallet (e.g. mobile) to continue
+      </p>
     </div>
-
+    
     <div class="tx-amount">
       <span class="big">{{ amount.getIntegerPart() }}</span>
       <span *ngIf="amount.ifDotExist()">
@@ -22,28 +20,30 @@
       <span class="small">{{ amount.getFractionalPart() }}</span>&ensp;</span>
       <span class="currency">PART</span>
     </div>
-
+    
     <mat-icon class="icon arrow" fontSet="partIcon" fontIcon="part-arrow-down"></mat-icon>
-
+    
     <div class="receiver-info">
+      <qrcode size="200" [level]="'H'" qrdata="particl:{{address}}?amount={{amount.getAmount()}}"></qrcode>
       <code class="address"> {{address}} </code>
     </div>
   </div>
 
   <div class="tx-confirmation" *ngIf="isConfirming">
     <div class="tx-info">
-      <div class="public">
-        <div class="title">Confirming Transaction...</div>
-        <mat-spinner class="loading-spinner"></mat-spinner>
-      </div>
+      <mat-spinner class="loading-spinner" [diameter]="50"></mat-spinner>
+      <div class="title">Confirming transaction</div>
+      <p class="widget-help">
+        Please wait while your funding transaction gets confirmed by the network
+      </p>
     </div>
   </div>
   
 </div><!-- .dialog-content -->
 
-<mat-dialog-actions fxLayoutAlign="space-between center">
-  <button *ngIf="!isConfirming" mat-button mat-dialog-close (click)="dialogClose()">
+<mat-dialog-actions fxLayoutAlign="space-between center" *ngIf="!isConfirming">
+  <button mat-button mat-dialog-close (click)="dialogClose()">
     <mat-icon fontSet="partIcon" fontIcon="part-cross"></mat-icon>
-    Cancel
+    Cancel bidding & Close
   </button>
 </mat-dialog-actions>
