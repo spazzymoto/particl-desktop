@@ -8,7 +8,6 @@ import { DirectiveModule } from '../core-ui/directive/directive.module';
 
 import { ModalsHelperService } from 'app/modals/modals-helper.service';
 /* modals */
-import { TermsComponent } from './terms/terms.component';
 import { ColdstakeComponent } from './coldstake/coldstake.component';
 import { DaemonComponent } from './daemon/daemon.component';
 import { SyncingComponent } from './syncing/syncing.component';
@@ -55,7 +54,6 @@ import { QRCodeModule } from 'angularx-qrcode';
   ],
   declarations: [
     PasswordComponent,
-    TermsComponent,
     DaemonComponent,
     SyncingComponent,
     UnlockwalletComponent,
@@ -86,7 +84,6 @@ import { QRCodeModule } from 'angularx-qrcode';
   ],
   entryComponents: [
     DaemonComponent,
-    TermsComponent,
     SyncingComponent,
     UnlockwalletComponent,
     EncryptwalletComponent,
